@@ -11,7 +11,7 @@ exports.createApp = (runArgument) => {
             allowedOrigin = 'http://localhost:3000'
         res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
         res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE');
-        res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
+        res.setHeader('Access-Control-Allow-Headers', 'content-type');
         next();
     })
 
@@ -21,28 +21,32 @@ exports.createApp = (runArgument) => {
     })
 
     app.get('/active', (req, res) => {
-        var activePrompt = testData['active']
+        var activePrompt = '---'
+        if ('active' in testData)
+            activePrompt = testData['active']
         res.send(activePrompt)
     })
 
     app.get('/category/:categoryName', (req, res) => {
         var categoryName = req.params.categoryName
-        if (categoryName in testData)
-            res.send(JSON.stringify(testData[categoryName]))
-        else
-            res.send("invalid category")
+        if (categoryName in testData) {
+            res.json(testData[categoryName])
+        }
+        else {
+            res.send('invalid category')
+        }
     })
 
     app.post('/', (req, res) => {
-        res.send("recieved post request")
+        res.send('received post request')
     })
 
     app.patch('', (req, res) => {
-        res.send("recieved patch request")
+        res.send('received patch request')
     })
 
     app.delete('', (req, res) => {
-        res.send('recieved delete request')
+        res.send('received delete request')
     })
 
     return app
