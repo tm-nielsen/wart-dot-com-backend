@@ -1,0 +1,14 @@
+{
+  "name": "wart-dot-com-backend",
+  "private": true,
+  "main": "index.js",
+  "scripts": {
+    "test": "node index.js debug",
+    "reset": "node index.js reset",
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "http": "^0.0.1-security"
+  }
+}
