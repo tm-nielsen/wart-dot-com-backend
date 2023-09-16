@@ -1,5 +1,5 @@
-import Express from'express'
-import testData from 'testData'
+const Express = require('express')
+const testData = require('./testData')
 
 const app = Express()
 
@@ -15,9 +15,9 @@ app.get('/active', (req, res) => {
 app.get('/category', (req, res) => {
     var categoryName = req.body
     if (categoryName in testData)
-        req.send(JSON.stringify(testData[categoryName]))
+        res.send(JSON.stringify(testData[categoryName]))
     else
-        req.send("invalid category")
+        res.send("invalid category")
 })
 
 app.post('/', (req, res) => {
@@ -29,4 +29,4 @@ app.patch('', (req, res) => {
 })
 
 
-export default app
+exports.expressApp = app
