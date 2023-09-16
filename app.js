@@ -1,13 +1,13 @@
 const Express = require('express')
-const testData = require('./testData')
+const {getActivePrompt, getPromptsInCategory} = require('./databaseManager')
 
 
-exports.createApp = (runArgument) => {
+exports.createApp = (isDebugging = false) => {
     const app = Express()
 
     app.use((req, res, next)=>{
         let allowedOrigin = 'https://tm-nielsen.github.io/wart-dot-com/'
-        if (runArgument === 'debug')
+        if (isDebugging)
             allowedOrigin = 'http://localhost:3000'
         res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
         res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE');
@@ -21,20 +21,19 @@ exports.createApp = (runArgument) => {
     })
 
     app.get('/active', (req, res) => {
-        var activePrompt = '---'
-        if ('active' in testData)
-            activePrompt = testData['active']
-        res.send(activePrompt)
+        getActivePrompt((activePrompt) => {
+            res.send(activePrompt? activePrompt: '---')
+        }, isDebugging)
     })
 
     app.get('/category/:categoryName', (req, res) => {
-        var categoryName = req.params.categoryName
-        if (categoryName in testData) {
-            res.json(testData[categoryName])
-        }
-        else {
-            res.send('invalid category')
-        }
+        const categoryName = req.params.categoryName
+        getPromptsInCategory(categoryName, (prompts, promptCount) => {
+            if (promptCount > 0)
+                res.json(prompts)
+            else
+                res.send('invalid category')
+        }, isDebugging)
     })
 
     app.post('/', (req, res) => {
