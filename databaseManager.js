@@ -11,7 +11,6 @@ const createTable = () => {
             if (err) console.error(err)
     })
 }
-
 exports.initializeDatabase = createTable
 exports.closeDatabase = () => db.close()
 
@@ -38,7 +37,7 @@ exports.resetDatabase = () => {
 }
 
 
-exports.getActivePrompt = (callback, logStatement = false) => {
+const getActivePrompt = (callback, logStatement = false) => {
     const statement = 'SELECT prompt FROM prompts WHERE category = "active"'
 
     if (logStatement)
@@ -49,6 +48,7 @@ exports.getActivePrompt = (callback, logStatement = false) => {
         callback(row.prompt)
     })
 }
+exports.getActivePrompt = getActivePrompt
 
 exports.getPromptsInCategory = (categoryName, callback, logStatement = false) => {
     const statement = 'SELECT prompt FROM prompts WHERE category = ?'
@@ -76,9 +76,61 @@ const run = (statement, parameters = [], logStatement = false) => {
     })
 }
 
+const insertPrompt = (prompt, category, logStatement = false) => {
+    const statement = 'INSERT INTO prompts (prompt, category) VALUES (?, ?)'
+    run(statement, [prompt, category], logStatement)
+}
+exports.insertPrompt = insertPrompt
+
 exports.addPendingPrompt = (prompt, logStatement = false) => {
-    const statement = 'INSERT INTO prompts (prompt, category) VALUES (?, "pending")'
-    
+    insertPrompt(prompt, 'pending', logStatement)
+}
+
+const removePrompt = (prompt, logStatement = false) => {
+    const statement = 'DELETE FROM prompts WHERE prompt = ?'
     run(statement, [prompt], logStatement)
-    // insertPrompt(prompt, 'pending')
+}
+exports.removePrompt = removePrompt
+
+
+const changePromptCategory = (prompt, newCategory, logStatement = false) => {
+    const statement = 'UPDATE prompts SET category = ? WHERE prompt = ?'
+    run(statement, [newCategory, prompt], logStatement)
+}
+
+const getRandomPromptFromCurrentPool = (callback, logStatement = false) => {
+    const statement = 'SELECT prompt FROM prompts WHERE category = "current" ORDER BY RANDOM() LIMIT 1'
+    
+    if (logStatement)
+        console.log('executing sql:\t\t', statement)
+
+    db.get(statement, (err, row) => {
+        if (err) console.error(err)
+        callback(row.prompt)
+    })
+}
+
+exports.selectNewActivePrompt = (callback, logStatement = false) => {
+    getActivePrompt((prompt) => {
+        changePromptCategory(prompt, 'past', logStatement)
+
+        getRandomPromptFromCurrentPool((newActivePrompt) => {
+            changePromptCategory(newActivePrompt, 'active', logStatement)
+            callback(newActivePrompt)
+            console.log('new active prompt selected:', newActivePrompt)
+        }, logStatement)
+    }, logStatement)
+}
+
+
+exports.approvePrompts = (prompts, logStatement = false) => {
+    prompts.map((prompt) => {
+        changePromptCategory(prompt, 'current', logStatement)
+    })
+}
+
+exports.rejectPrompts = (prompts, logStatement = false) => {
+    prompts.map((prompt) => {
+        removePrompt(prompt, logStatement)
+    })
 }

@@ -1,5 +1,10 @@
 const express = require('express')
-const {getActivePrompt, getPromptsInCategory, addPendingPrompt} = require('./databaseManager')
+const {
+    getActivePrompt, getPromptsInCategory, addPendingPrompt,
+    approvePrompts, rejectPrompts,
+    selectNewActivePrompt,
+    insertPrompt, removePrompt
+} = require('./databaseManager')
 
 
 exports.createApp = (isDebugging = false) => {
@@ -19,6 +24,10 @@ exports.createApp = (isDebugging = false) => {
 
     app.get('/', (req, res) =>{
         res.send("Hello World")
+    })
+
+    app.get('/status', (req, res) => {
+        res.send("online")
     })
 
     app.get('/active', (req, res) => {
@@ -63,17 +72,11 @@ exports.createApp = (isDebugging = false) => {
         return true
     }
 
-    app.post('insert', (req, res) => {
-        if (authenticateRequest(req, res)) {
-            const {prompt, category} = req.body
-            res.send(`inserted prompt ${prompt} into ${category}`)
-        }
-    })
-
     app.patch('/approve', (req, res) => {
         if (authenticateRequest(req, res)) {
             const {approvedPrompts} = req.body
             res.send(`received approval request for ${approvedPrompts}`)
+            approvePrompts(approvedPrompts, isDebugging)
         }
     })
 
@@ -81,18 +84,32 @@ exports.createApp = (isDebugging = false) => {
         if (authenticateRequest(req, res)) {
             const {rejectedPrompts} = req.body
             res.send(`received rejection request for ${rejectedPrompts}`)
+            rejectPrompts(rejectedPrompts, isDebugging)
         }
     })
 
+
     app.patch('/select', (req, res) => {
         if (authenticateRequest(req, res)) {
-            res.send('received request to select new prompt')
+            selectNewActivePrompt((prompt) => {
+                res.send(`selected new active prompt: ${prompt}`)
+            }, isDebugging)
+        }
+    })
+
+
+    app.post('/insert', (req, res) => {
+        if (authenticateRequest(req, res)) {
+            const {prompt, category} = req.body
+            insertPrompt(prompt, category, isDebugging)
+            res.send(`inserted prompt ${prompt} into ${category}`)
         }
     })
 
     app.delete('/', (req, res) => {
         if (authenticateRequest(req, res)) {
             const {prompt} = req.body
+            removePrompt(prompt)
             res.send(`deleted prompt ${prompt}`)
         }
     })

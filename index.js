@@ -13,4 +13,5 @@ process.on('exit', closeDatabase)
 const expressApp = createApp(runArgument === 'debug')
 expressApp.listen(process.env.PORT)
 
-console.log('express app listening on ', process.env.PORT, ' with argument ', runArgument)
+console.log('express app listening on', process.env.PORT,
+    runArgument? `with argument ${runArgument}`: 'with no argument')
