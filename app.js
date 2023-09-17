@@ -1,9 +1,10 @@
-const Express = require('express')
-const {getActivePrompt, getPromptsInCategory} = require('./databaseManager')
+const express = require('express')
+const {getActivePrompt, getPromptsInCategory, addPendingPrompt} = require('./databaseManager')
 
 
 exports.createApp = (isDebugging = false) => {
-    const app = Express()
+    const app = express()
+    app.use(express.json())
 
     app.use((req, res, next)=>{
         let allowedOrigin = 'https://tm-nielsen.github.io/wart-dot-com/'
@@ -11,7 +12,7 @@ exports.createApp = (isDebugging = false) => {
             allowedOrigin = 'http://localhost:3000'
         res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
         res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE');
-        res.setHeader('Access-Control-Allow-Headers', 'content-type');
+        res.setHeader('Access-Control-Allow-Headers', 'Content-type');
         next();
     })
 
@@ -37,6 +38,8 @@ exports.createApp = (isDebugging = false) => {
     })
 
     app.post('/', (req, res) => {
+        const {prompt} = req.body
+        addPendingPrompt(prompt, isDebugging)
         res.send('received post request')
     })
 
