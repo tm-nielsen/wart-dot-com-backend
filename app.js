@@ -31,19 +31,17 @@ exports.createApp = (isDebugging = false) => {
     })
 
     app.get('/active', (req, res) => {
-        getActivePrompt((activePrompt) => {
-            res.send(activePrompt? activePrompt: '---')
-        }, isDebugging)
+        let activePrompt = getActivePrompt()
+        res.send(activePrompt? activePrompt: '---')
     })
 
     app.get('/category/:categoryName', (req, res) => {
         const categoryName = req.params.categoryName
-        getPromptsInCategory(categoryName, (prompts, promptCount) => {
-            if (promptCount > 0)
-                res.json(prompts)
-            else
-                res.send('invalid category')
-        }, isDebugging)
+        let prompts = getPromptsInCategory(categoryName)
+        if (prompts.length > 0)
+            res.json(prompts)
+        else
+            res.send('invalid category')
     })
 
     app.get('/authenticate/:password', (req, res) => {
@@ -57,7 +55,7 @@ exports.createApp = (isDebugging = false) => {
 
     app.post('/suggest', (req, res) => {
         const {prompt} = req.body
-        addPendingPrompt(prompt, isDebugging)
+        addPendingPrompt(prompt)
         res.send(`added prompt "${prompt}"`)
     })
 
@@ -76,7 +74,7 @@ exports.createApp = (isDebugging = false) => {
         if (authenticateRequest(req, res)) {
             const {approvedPrompts} = req.body
             res.send(`received approval request for ${approvedPrompts}`)
-            approvePrompts(approvedPrompts, isDebugging)
+            approvePrompts(approvedPrompts)
         }
     })
 
@@ -84,16 +82,15 @@ exports.createApp = (isDebugging = false) => {
         if (authenticateRequest(req, res)) {
             const {rejectedPrompts} = req.body
             res.send(`received rejection request for ${rejectedPrompts}`)
-            rejectPrompts(rejectedPrompts, isDebugging)
+            rejectPrompts(rejectedPrompts)
         }
     })
 
 
     app.patch('/select', (req, res) => {
         if (authenticateRequest(req, res)) {
-            selectNewActivePrompt((prompt) => {
-                res.send(`selected new active prompt: ${prompt}`)
-            }, isDebugging)
+            let newActivePrompt = selectNewActivePrompt()
+            res.send(`selected new active prompt: ${newActivePrompt}`)
         }
     })
 
@@ -101,7 +98,7 @@ exports.createApp = (isDebugging = false) => {
     app.post('/insert', (req, res) => {
         if (authenticateRequest(req, res)) {
             const {prompt, category} = req.body
-            insertPrompt(prompt, category, isDebugging)
+            insertPrompt(prompt, category)
             res.send(`inserted prompt ${prompt} into ${category}`)
         }
     })

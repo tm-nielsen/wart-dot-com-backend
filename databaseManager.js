@@ -1,8 +1,6 @@
-// const sqlite3 = require('sqlite3')
 const Database = require('better-sqlite3')
 const testData = require('./testData.json')
 
-// const db = new sqlite3.Database('prompts.db')
 const db = Database('prompts.db', { verbose: console.log })
 
 
@@ -26,12 +24,10 @@ exports.resetDatabase = () => {
 
         if (Array.isArray(categoryContent)){
             categoryContent.map((prompt) => {
-                // insertStatement.run(prompt, categoryName)
                 statement.run(prompt, categoryName)
             })
         }
         else {
-            // insertStatement.run(categoryContent, categoryName)
             statement.run(categoryContent, categoryName)
         }
     })
@@ -39,126 +35,66 @@ exports.resetDatabase = () => {
 }
 
 
-const getActivePrompt = (callback, logStatement = false) => {
-    // const statement = 'SELECT prompt FROM prompts WHERE category = "active"'
+const getActivePrompt = () => {
     const statement = db.prepare('SELECT prompt FROM prompts WHERE category = ?')
-
-    // if (logStatement)
-    //     console.log('executing sql:\t\t', statement)
-
-    // db.get(statement, (err, row) => {
-    //     if (err) console.error(err)
-    //     callback(row.prompt)
-    // })
-    let row = statement.get('active')
-    // let row = categorySelectStatement.get('active')
-    console.log(row)
-    callback(row.prompt)
+    return statement.get('active').prompt
 }
 exports.getActivePrompt = getActivePrompt
 
-exports.getPromptsInCategory = (categoryName, callback, logStatement = false) => {
-    // const statement = 'SELECT prompt FROM prompts WHERE category = ?'
+exports.getPromptsInCategory = (categoryName) => {
     const statement = db.prepare('SELECT prompt FROM prompts WHERE category = ?')
 
-    // if (logStatement)
-    //     console.log('executing sql:\t\t', statement)
-
-    // let rows = []
-    // db.each(statement, [categoryName], (err, row) => {
-    //     if (err) console.error(err)
-    //     rows.push(row.prompt)
-    // }, (err, rowCount) => {
-    //     if (err) console.error(err)
-    //     callback(rows, rowCount)
-    // })
     let rows = statement.all(categoryName)
-    // let rows = categorySelectStatement.all(categoryName)
-    console.log(rows)
-    let prompts = rows.map((row) => row.prompt)
-    console.log(prompts)
-    callback(prompts, prompts.length)
+    return rows.map((row) => row.prompt)
 }
 
 
-// const run = (statement, parameters = [], logStatement = false) => {
-//     if (logStatement)
-//         console.log('executing sql:\t\t', statement)
-
-//     db.run(statement, parameters, (err) =>{
-//         if (err) console.error(err)
-//     })
-// }
-
-const insertPrompt = (prompt, category, logStatement = false) => {
-    // const statement = 'INSERT INTO prompts (prompt, category) VALUES (?, ?)'
-    // run(statement, [prompt, category], logStatement)
+const insertPrompt = (prompt, category) => {
     const statement = db.prepare('INSERT INTO prompts (prompt, category) VALUES (?, ?)')
     statement.run(prompt, category)
-    // insertStatement.run(prompt, category)
 }
 exports.insertPrompt = insertPrompt
 
-exports.addPendingPrompt = (prompt, logStatement = false) => {
-    insertPrompt(prompt, 'pending', logStatement)
+exports.addPendingPrompt = (prompt) => {
+    insertPrompt(prompt, 'pending')
 }
 
-const removePrompt = (prompt, logStatement = false) => {
-    // const statement = 'DELETE FROM prompts WHERE prompt = ?'
-    // run(statement, [prompt], logStatement)
+const removePrompt = (prompt) => {
     const statement = db.prepare('DELETE FROM prompts WHERE prompt = ?')
     statement.run(prompt)
-    // removeStatement.run(prompt)
 }
 exports.removePrompt = removePrompt
 
 
-const changePromptCategory = (prompt, newCategory, logStatement = false) => {
-    // const statement = 'UPDATE prompts SET category = ? WHERE prompt = ?'
-    // run(statement, [newCategory, prompt], logStatement)
+const changePromptCategory = (prompt, newCategory) => {
     const statement = db.prepare('UPDATE prompts SET category = ? WHERE prompt = ?')
     statement.run(newCategory, prompt)
-    // updateCategoryStatement.run(newCategory, prompt)
 }
 
-const getRandomPromptFromCurrentPool = (callback, logStatement = false) => {
-    const statement = db.prepare('SELECT prompt FROM prompts WHERE category = "current" ORDER BY RANDOM() LIMIT 1')
-    // // const statement = 'SELECT prompt FROM prompts WHERE category = "current" ORDER BY RANDOM() LIMIT 1'
-    
-    // if (logStatement)
-    //     console.log('executing sql:\t\t', statement)
-
-    // db.get(statement, (err, row) => {
-    //     if (err) console.error(err)
-    //     callback(row.prompt)
-    // })
-
-    let row = statement.get()
-    console.log(row)
-    callback(row.prompt)
+const getRandomPromptFromCurrentPool = () => {
+    const statement = db.prepare('SELECT prompt FROM prompts WHERE ' +
+        "category = 'current' ORDER BY RANDOM() LIMIT 1")
+    return statement.get().prompt
 }
 
-exports.selectNewActivePrompt = (callback, logStatement = false) => {
-    getActivePrompt((prompt) => {
-        changePromptCategory(prompt, 'past', logStatement)
+exports.selectNewActivePrompt = () => {
+    let activePrompt = getActivePrompt()
+    changePromptCategory(activePrompt, 'past')
 
-        getRandomPromptFromCurrentPool((newActivePrompt) => {
-            changePromptCategory(newActivePrompt, 'active', logStatement)
-            callback(newActivePrompt)
-            console.log('new active prompt selected:', newActivePrompt)
-        }, logStatement)
-    }, logStatement)
+    activePrompt = getRandomPromptFromCurrentPool()
+    changePromptCategory(activePrompt, 'active')
+    return activePrompt
 }
 
 
-exports.approvePrompts = (prompts, logStatement = false) => {
+exports.approvePrompts = (prompts) => {
     prompts.map((prompt) => {
-        changePromptCategory(prompt, 'current', logStatement)
+        changePromptCategory(prompt, 'current')
     })
 }
 
-exports.rejectPrompts = (prompts, logStatement = false) => {
+exports.rejectPrompts = (prompts) => {
     prompts.map((prompt) => {
-        removePrompt(prompt, logStatement)
+        removePrompt(prompt)
     })
 }
