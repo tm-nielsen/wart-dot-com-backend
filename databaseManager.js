@@ -122,11 +122,8 @@ const getRandomPromptFromCurrentPool = () => {
 
 exports.selectNewActivePrompt = () => {
     let activePrompt = getActivePrompt()
-    if (!activePrompt) {
-        console.error('failed to get active prompt when trying to select new, aborting')
-        return activePrompt
-    }
-    changePromptCategory(activePrompt, 'past')
+    if (activePrompt)
+        changePromptCategory(activePrompt, 'past')
 
     let newActivePrompt = getRandomPromptFromCurrentPool()
     if (!newActivePrompt) {
@@ -136,6 +133,20 @@ exports.selectNewActivePrompt = () => {
     }
     changePromptCategory(newActivePrompt, 'active')
     return newActivePrompt
+}
+
+exports.overrideActivePrompt = (prompt) => {
+    try {
+        const statement = db.prepare("UPDATE prompts SET category = 'current' WHERE category = 'active'")
+        statement.run()
+
+        insertPrompt(prompt, 'active')
+        return prompt
+    }
+    catch(err) {
+        console.error(err)
+        return undefined
+    }
 }
 
 

@@ -3,7 +3,7 @@ const {
     getActivePrompt, getPromptsInCategory, addPendingPrompt,
     approvePrompts, rejectPrompts,
     selectNewActivePrompt,
-    insertPrompt, removePrompt
+    insertPrompt, removePrompt, overrideActivePrompt
 } = require('./databaseManager')
 
 
@@ -88,6 +88,14 @@ exports.createApp = (isDebugging = false) => {
         if (authenticateRequest(req, res)) {
             let newActivePrompt = selectNewActivePrompt()
             res.send(`selected new active prompt: ${newActivePrompt}`)
+        }
+    })
+
+    app.patch('/override', (req, res) => {
+        if (authenticateRequest(req, res)) {
+            const {prompt} = req.body
+            let newActivePrompt = overrideActivePrompt(prompt)
+            res.send(`active prompt overriden to: ${newActivePrompt}`)
         }
     })
 
