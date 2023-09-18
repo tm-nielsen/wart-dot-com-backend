@@ -4,14 +4,11 @@ const {initializeDatabase, closeDatabase, resetDatabase} = require("./databaseMa
 const dotenv = require('dotenv')
 dotenv.config()
 
-const runArgument = process.argv[2]
-
-if (runArgument === 'reset') resetDatabase()
+if (process.argv.includes('reset')) resetDatabase()
 else initializeDatabase()
 process.on('exit', closeDatabase)
 
-const expressApp = createApp(runArgument === 'debug')
+const expressApp = createApp(process.argv.includes('debug'))
 expressApp.listen(process.env.PORT)
 
-console.log('express app listening on', process.env.PORT,
-    runArgument? `with argument ${runArgument}`: 'with no argument')
+console.log('express app listening on', process.env.PORT, process.argv.slice(2))

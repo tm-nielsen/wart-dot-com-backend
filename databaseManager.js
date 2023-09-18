@@ -1,7 +1,11 @@
 const Database = require('better-sqlite3')
 const testData = require('./testData.json')
 
-const db = Database('prompts.db', { verbose: console.log })
+const dotenv = require('dotenv')
+dotenv.config()
+
+let isDebugging = process.argv.includes('debug')
+const db = Database('prompts.db', isDebugging? { verbose: console.log }: undefined)
 
 
 const createTable = () => {
@@ -36,22 +40,42 @@ exports.resetDatabase = () => {
 
 
 const getActivePrompt = () => {
-    const statement = db.prepare('SELECT prompt FROM prompts WHERE category = ?')
-    return statement.get('active').prompt
+    try {
+        const statement = db.prepare("SELECT prompt FROM prompts WHERE category = 'active'")
+
+        let row = statement.get()
+        if (row && 'prompt' in row) return row.prompt
+        return undefined
+    }
+    catch(err) {
+        console.error(err)
+        return undefined
+    }
 }
 exports.getActivePrompt = getActivePrompt
 
 exports.getPromptsInCategory = (categoryName) => {
-    const statement = db.prepare('SELECT prompt FROM prompts WHERE category = ?')
+    try {
+        const statement = db.prepare('SELECT prompt FROM prompts WHERE category = ?')
 
-    let rows = statement.all(categoryName)
-    return rows.map((row) => row.prompt)
+        let rows = statement.all(categoryName)
+        return rows.map((row) => row.prompt)
+    }
+    catch(err) {
+        console.error(err)
+        return []
+    }
 }
 
 
 const insertPrompt = (prompt, category) => {
-    const statement = db.prepare('INSERT INTO prompts (prompt, category) VALUES (?, ?)')
-    statement.run(prompt, category)
+    try {
+        const statement = db.prepare('INSERT INTO prompts (prompt, category) VALUES (?, ?)')
+        statement.run(prompt, category)
+    }
+    catch(err) {
+        console.error(err)
+    }
 }
 exports.insertPrompt = insertPrompt
 
@@ -60,30 +84,58 @@ exports.addPendingPrompt = (prompt) => {
 }
 
 const removePrompt = (prompt) => {
-    const statement = db.prepare('DELETE FROM prompts WHERE prompt = ?')
-    statement.run(prompt)
+    try {
+        const statement = db.prepare('DELETE FROM prompts WHERE prompt = ?')
+        statement.run(prompt)
+    }
+    catch(err) {
+        console.error(err)
+    }
 }
 exports.removePrompt = removePrompt
 
 
 const changePromptCategory = (prompt, newCategory) => {
-    const statement = db.prepare('UPDATE prompts SET category = ? WHERE prompt = ?')
-    statement.run(newCategory, prompt)
+    try {
+        const statement = db.prepare('UPDATE prompts SET category = ? WHERE prompt = ?')
+        statement.run(newCategory, prompt)
+    }
+    catch(err) {
+        console.error(err)
+    }
 }
 
 const getRandomPromptFromCurrentPool = () => {
-    const statement = db.prepare('SELECT prompt FROM prompts WHERE ' +
-        "category = 'current' ORDER BY RANDOM() LIMIT 1")
-    return statement.get().prompt
+    try {
+        const statement = db.prepare('SELECT prompt FROM prompts WHERE ' +
+            "category = 'current' ORDER BY RANDOM() LIMIT 1")
+
+        let row = statement.get()
+        if (row && 'prompt' in row) return row.prompt
+        return undefined
+    }
+    catch(err) {
+        console.error(err)
+        return undefined
+    }
 }
 
 exports.selectNewActivePrompt = () => {
     let activePrompt = getActivePrompt()
+    if (!activePrompt) {
+        console.error('failed to get active prompt when trying to select new, aborting')
+        return activePrompt
+    }
     changePromptCategory(activePrompt, 'past')
 
-    activePrompt = getRandomPromptFromCurrentPool()
-    changePromptCategory(activePrompt, 'active')
-    return activePrompt
+    let newActivePrompt = getRandomPromptFromCurrentPool()
+    if (!newActivePrompt) {
+        console.error('failed to select random prompt as new active, resetting to previous')
+        changePromptCategory(activePrompt, 'active')
+        return activePrompt
+    }
+    changePromptCategory(newActivePrompt, 'active')
+    return newActivePrompt
 }
 
 

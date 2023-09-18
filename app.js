@@ -38,10 +38,7 @@ exports.createApp = (isDebugging = false) => {
     app.get('/category/:categoryName', (req, res) => {
         const categoryName = req.params.categoryName
         let prompts = getPromptsInCategory(categoryName)
-        if (prompts.length > 0)
-            res.json(prompts)
-        else
-            res.send('invalid category')
+        res.json(prompts)
     })
 
     app.get('/authenticate/:password', (req, res) => {
