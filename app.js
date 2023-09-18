@@ -22,10 +22,6 @@ exports.createApp = (isDebugging = false) => {
     })
 
 
-    app.get('/', (req, res) =>{
-        res.send("Hello World")
-    })
-
     app.get('/status', (req, res) => {
         res.send("online")
     })
