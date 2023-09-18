@@ -137,10 +137,14 @@ exports.selectNewActivePrompt = () => {
 
 exports.overrideActivePrompt = (prompt) => {
     try {
-        const statement = db.prepare("UPDATE prompts SET category = 'current' WHERE category = 'active'")
-        statement.run()
+        const updateStatement = db.prepare("UPDATE prompts SET category = 'current' WHERE category = 'active'")
+        updateStatement.run()
 
-        insertPrompt(prompt, 'active')
+        const selectStatement = db.prepare('SELECT prompt FROM prompts WHERE prompt = ?')
+        let row = selectStatement.get(prompt)
+
+        if (row) changePromptCategory(prompt, 'active')
+        else insertPrompt(prompt, 'active')
         return prompt
     }
     catch(err) {
