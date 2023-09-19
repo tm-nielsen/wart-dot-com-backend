@@ -118,7 +118,7 @@
         {"prompt":"Mark", "insertionDate":"2021-09-09T00:11", "selectionDate":"2021-12-02"},
         {"prompt":"Rocket", "insertionDate":"2020-12-25T00:02", "selectionDate":"2021-12-10"},
         {"prompt":"Wanted", "insertionDate":"2021-08-24T00:05", "selectionDate":"2021-12-17"},
-        {"prompt":"Christmas", "insertionDate":"", "selectionDate":"2021-12-25"},
+        {"prompt":"Christmas", "insertionDate":"2021-12-25", "selectionDate":"2021-12-25"},
         {"prompt":"Coins", "insertionDate":"2021-08-24T00:06", "selectionDate":"2022-01-06"},
         {"prompt":"Snake", "insertionDate":"2021-09-28T00:04", "selectionDate":"2022-01-13"},
         {"prompt":"Slime", "insertionDate":"2021-08-24T00:0", "selectionDate":"2022-01-22"},
