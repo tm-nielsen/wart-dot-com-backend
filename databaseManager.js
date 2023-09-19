@@ -1,5 +1,6 @@
 const Database = require('better-sqlite3')
-const testData = require('./testData.json')
+// const testData = require('./testData.json')
+const resetJson = require('./prompts-18-09-23.json')
 
 const dotenv = require('dotenv')
 dotenv.config()
@@ -9,33 +10,59 @@ const db = Database('prompts.db', isDebugging? { verbose: console.log }: undefin
 
 
 const createTable = () => {
+    try {
     db.prepare('CREATE TABLE IF NOT EXISTS prompts(' +
         'prompt TEXT NOT NULL PRIMARY KEY,' +
-        'category TEXT NOT NULL);').run()
+        'category TEXT NOT NULL,' +
+        "insertionDate INTEGER DEFAULT (unixepoch('now'))," +
+        'selectionDate INTEGER DEFAULT 0);').run()
+    } catch(error) {console.error(error)}
 }
 exports.initializeDatabase = createTable
 exports.closeDatabase = () => db.close()
 
 
 exports.resetDatabase = () => {
-    console.log('resetting database with test Data')
+    console.log('resetting database with dated json')
     db.prepare('DROP TABLE IF EXISTS prompts').run()
     createTable()
 
-    const statement = db.prepare('INSERT INTO prompts (prompt, category) VALUES (?, ?)')
-    Object.keys(testData).map((categoryName) => {
-        let categoryContent = testData[categoryName]
+    const statement = db.prepare('INSERT INTO prompts ' +
+        '(prompt, category, insertionDate, selectionDate) VALUES (?, ?, ?, ?)')
+    const insertRow = (promptObject, categoryName) => {
+        const {prompt, insertionDate, selectionDate} = promptObject
+        let insertionEpoch = new Date(insertionDate).getTime() / 1000
+        let selectionEpoch = new Date(selectionDate).getTime() / 1000
+        statement.run(prompt, categoryName, insertionEpoch, selectionEpoch)
+    }
+
+    Object.keys(resetJson).map((categoryName) => {
+        let categoryContent = resetJson[categoryName]
 
         if (Array.isArray(categoryContent)){
-            categoryContent.map((prompt) => {
-                statement.run(prompt, categoryName)
+            categoryContent.map((promptObject) => {
+                insertRow(promptObject, categoryName)
             })
         }
         else {
-            statement.run(categoryContent, categoryName)
+            insertRow(categoryContent, categoryName)
         }
     })
     console.log('database reset completed')
+
+
+    const testPrompt = (target, label) => {
+        console.log('\ntesting database entry for', label)
+        let testStatement = db.prepare('SELECT * FROM prompts WHERE prompt = ?')
+        let row = testStatement.get(target)
+        let {prompt, category, insertionDate, selectionDate} = row
+        console.log(`${prompt} (${category})`, '\n',
+            new Date(insertionDate * 1000).toDateString(), '\n',
+            new Date(selectionDate * 1000).toDateString())
+    }
+
+    testPrompt('Christmas', 'christmas 2021')
+    testPrompt('Judgement', 'the 16/09/2023 prompt')
 }
 
 

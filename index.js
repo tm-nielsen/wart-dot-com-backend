@@ -11,7 +11,11 @@ let allowedOrigin = process.env.FRONTEND_PATH
 if (runningLocally) allowedOrigin = 'http://localhost:3000'
 
 
-if (process.argv.includes('reset')) resetDatabase()
+if (process.argv.includes('reset')) {
+    resetDatabase()
+    closeDatabase()
+    return
+}
 else initializeDatabase()
 process.on('exit', closeDatabase)
 
