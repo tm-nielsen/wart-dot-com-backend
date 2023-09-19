@@ -80,9 +80,10 @@ const getActivePrompt = () => {
 }
 exports.getActivePrompt = getActivePrompt
 
-exports.getPromptsInCategory = (categoryName) => {
+exports.getPromptsInCategory = (categoryName, orderBySelectionDate = false) => {
     try {
-        const statement = db.prepare('SELECT prompt FROM prompts WHERE category = ?')
+        const statement = db.prepare('SELECT prompt FROM prompts WHERE category = ?' +
+            ` ORDER BY ${orderBySelectionDate? 'selectionDate': 'insertionDate'} DESC`)
 
         let rows = statement.all(categoryName)
         return rows.map((row) => row.prompt)
@@ -131,6 +132,17 @@ const changePromptCategory = (prompt, newCategory) => {
     }
 }
 
+const updateSelectionDateToNow = (prompt) => {
+    try {
+        const statement = db.prepare('UPDATE prompts SET ' +
+            "selectionDate = (unixepoch('now')) WHERE prompt = ?")
+            statement.run(prompt)
+    }
+    catch(err) {
+        console.error(err)
+    }
+}
+
 const getRandomPromptFromCurrentPool = () => {
     try {
         const statement = db.prepare('SELECT prompt FROM prompts WHERE ' +
@@ -158,6 +170,7 @@ exports.selectNewActivePrompt = () => {
         return activePrompt
     }
     changePromptCategory(newActivePrompt, 'active')
+    updateSelectionDateToNow(newActivePrompt)
     return newActivePrompt
 }
 
@@ -171,6 +184,7 @@ exports.overrideActivePrompt = (prompt) => {
 
         if (row) changePromptCategory(prompt, 'active')
         else insertPrompt(prompt, 'active')
+        updateSelectionDateToNow(prompt)
         return prompt
     }
     catch(err) {

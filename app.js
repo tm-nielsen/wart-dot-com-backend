@@ -30,7 +30,7 @@ exports.createApp = (allowedOrigin) => {
 
     app.get('/category/:categoryName', (req, res) => {
         const categoryName = req.params.categoryName
-        let prompts = getPromptsInCategory(categoryName)
+        let prompts = getPromptsInCategory(categoryName, categoryName === 'past')
         res.json(prompts)
     })
 
