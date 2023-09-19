@@ -128,5 +128,5 @@ dist
 
 .vscode
 *.db*
-*.pem
 *.key
+*.cert

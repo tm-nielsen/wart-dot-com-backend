@@ -9,9 +9,17 @@ const {
 
 exports.createApp = (allowedOrigin) => {
     const app = express()
+    app.enable('trust proxy')
     app.use(express.json())
 
-    app.use((req, res, next)=>{
+    app.use((req, res, next) => {
+        if (req.headers['x-forwarded-proto'] === 'http') {
+            return res.redirect('https://' + req.headers.host + req.url)
+        }
+        next()
+    })
+
+    app.use((req, res, next) => {
         res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
         res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE');
         res.setHeader('Access-Control-Allow-Headers', 'Content-type');

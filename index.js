@@ -1,3 +1,11 @@
+const fs = require('fs')
+const https = require('https')
+
+let privateKey = fs.readFileSync('wartwords.ca.key', 'utf-8')
+let certificate = fs.readFileSync('wartwords.ca.cert', 'utf-8')
+let credentials = {key: privateKey, cert: certificate}
+
+
 const { createApp } = require('./app')
 const {initializeDatabase, closeDatabase, resetDatabase} = require("./databaseManager")
 
@@ -21,8 +29,9 @@ process.on('exit', closeDatabase)
 
 
 const expressApp = createApp(allowedOrigin)
-expressApp.listen(port)
+let httpsServer = https.createServer(credentials, expressApp)
+httpsServer.listen(port)
 
-console.log('express app listening on port', port,
+console.log('\nhttps server listening on port', port,
 '\nallowing access from', allowedOrigin,
 '\nwith run args', process.argv.slice(2))
