@@ -7,14 +7,11 @@ const {
 } = require('./databaseManager')
 
 
-exports.createApp = (isDebugging = false) => {
+exports.createApp = (allowedOrigin) => {
     const app = express()
     app.use(express.json())
 
     app.use((req, res, next)=>{
-        let allowedOrigin = 'https://tm-nielsen.github.io/wart-dot-com/'
-        if (isDebugging)
-            allowedOrigin = 'http://localhost:3000'
         res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
         res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE');
         res.setHeader('Access-Control-Allow-Headers', 'Content-type');

@@ -3,9 +3,10 @@
   "private": true,
   "main": "index.js",
   "scripts": {
-    "test": "node index.js debug",
-    "reset": "node index.js reset",
-    "start": "node index.js"
+    "start": "node index.js",
+    "debug": "node index.js debug",
+    "debug-local": "node index.js debug local",
+    "reset": "node index.js reset"
   },
   "dependencies": {
     "better-sqlite3": "^8.6.0",
