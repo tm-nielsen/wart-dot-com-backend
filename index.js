@@ -4,15 +4,21 @@ const {initializeDatabase, closeDatabase, resetDatabase} = require("./databaseMa
 const dotenv = require('dotenv')
 dotenv.config()
 
+
+const runningLocally = process.argv.includes('local')
+const port = process.env.PORT
+let allowedOrigin = process.env.FRONTEND_PATH
+if (runningLocally) allowedOrigin = 'http://localhost:3000'
+
+
 if (process.argv.includes('reset')) resetDatabase()
 else initializeDatabase()
 process.on('exit', closeDatabase)
 
-let allowedOrigin = process.env.FRONTEND_PATH
-if (process.argv.includes('local')) allowedOrigin = 'http://localhost:3000'
-const expressApp = createApp(allowedOrigin)
-expressApp.listen(process.env.PORT)
 
-console.log('express app listening on port', process.env.PORT,
+const expressApp = createApp(allowedOrigin)
+expressApp.listen(port)
+
+console.log('express app listening on port', port,
 '\nallowing access from', allowedOrigin,
 '\nwith run args', process.argv.slice(2))
