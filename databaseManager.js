@@ -1,5 +1,4 @@
 const Database = require('better-sqlite3')
-// const testData = require('./testData.json')
 const resetJson = require('./prompts-18-09-23.json')
 
 const dotenv = require('dotenv')
