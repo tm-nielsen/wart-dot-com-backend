@@ -174,7 +174,9 @@ const getRandomRowByWeight = (objectList) => {
 }
 const getRandomPromptFromCurrentPool = () => {
     try {
-        let rows = getPromptsInCategory('current')
+        const statement = db.prepare("SELECT * FROM prompts WHERE category = 'current'" +
+            "ORDER BY endorsements DESC")
+        let rows = statement.all()
         if (rows.length > 0) return getRandomRowByWeight(rows).prompt
 
         return undefined
