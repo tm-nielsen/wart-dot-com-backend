@@ -81,7 +81,7 @@ const getActivePrompt = () => {
 }
 exports.getActivePrompt = getActivePrompt
 
-exports.getPromptsInCategory = (categoryName, orderBySelectionDate = false) => {
+const getPromptsInCategory = (categoryName, orderBySelectionDate = false) => {
     try {
         const statement = db.prepare('SELECT * FROM prompts WHERE category = ?' +
             ` ORDER BY ${orderBySelectionDate? 'selectionDate': 'insertionDate'} DESC`)
@@ -94,6 +94,7 @@ exports.getPromptsInCategory = (categoryName, orderBySelectionDate = false) => {
         return []
     }
 }
+exports.getPromptsInCategory = getPromptsInCategory
 
 
 const insertPrompt = (prompt, category) => {
@@ -155,13 +156,27 @@ const updateSelectionDateToNow = (prompt) => {
     }
 }
 
+//https://stackoverflow.com/questions/43566019/how-to-choose-a-weighted-random-array-element-in-javascript
+const getRandomRowByWeight = (objectList) => {
+    let i
+    let weights = [objectList[0].endorsements]
+
+    for (i = 1; i < objectList.length; i++)
+        weights[i] = objectList[i].endorsements + objectList[i].endorsements
+
+    let random = Math.random() * weights[weights.length - 1]
+
+    for (i = 0; i < weights.length; i++)
+        if (weights[i] > random)
+            break
+    
+    return objectList[i]
+}
 const getRandomPromptFromCurrentPool = () => {
     try {
-        const statement = db.prepare('SELECT prompt FROM prompts WHERE ' +
-            "category = 'current' ORDER BY RANDOM() LIMIT 1")
+        let rows = getPromptsInCategory('current')
+        if (rows.length > 0) return getRandomRowByWeight(rows).prompt
 
-        let row = statement.get()
-        if (row && 'prompt' in row) return row.prompt
         return undefined
     }
     catch(err) {
