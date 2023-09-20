@@ -1,6 +1,7 @@
 const express = require('express')
 const {
-    getActivePrompt, getPromptsInCategory, addPendingPrompt,
+    getActivePrompt, getPromptsInCategory,
+    addPendingPrompt, endorsePrompt,
     approvePrompts, rejectPrompts,
     selectNewActivePrompt,
     insertPrompt, removePrompt, overrideActivePrompt
@@ -55,6 +56,12 @@ exports.createApp = (allowedOrigin) => {
         const {prompt} = req.body
         addPendingPrompt(prompt)
         res.send(`added prompt "${prompt}"`)
+    })
+
+    app.patch('/endorse', (req, res) => {
+        const {prompt} = req.body
+        endorsePrompt(prompt)
+        res.send(`endorsed prompt "${prompt}"`)
     })
 
 

@@ -14,7 +14,8 @@ const createTable = () => {
         'prompt TEXT NOT NULL PRIMARY KEY,' +
         'category TEXT NOT NULL,' +
         "insertionDate INTEGER DEFAULT (unixepoch('now'))," +
-        'selectionDate INTEGER DEFAULT 0);').run()
+        'selectionDate INTEGER DEFAULT 0,' +
+        'endorsements INTEGER DEFAULT 1);').run()
     } catch(error) {console.error(error)}
 }
 exports.initializeDatabase = createTable
@@ -82,11 +83,11 @@ exports.getActivePrompt = getActivePrompt
 
 exports.getPromptsInCategory = (categoryName, orderBySelectionDate = false) => {
     try {
-        const statement = db.prepare('SELECT prompt FROM prompts WHERE category = ?' +
+        const statement = db.prepare('SELECT * FROM prompts WHERE category = ?' +
             ` ORDER BY ${orderBySelectionDate? 'selectionDate': 'insertionDate'} DESC`)
 
         let rows = statement.all(categoryName)
-        return rows.map((row) => row.prompt)
+        return rows
     }
     catch(err) {
         console.error(err)
@@ -109,6 +110,17 @@ exports.insertPrompt = insertPrompt
 exports.addPendingPrompt = (prompt) => {
     insertPrompt(prompt, 'pending')
 }
+
+exports.endorsePrompt = (prompt) => {
+    try {
+        const statement = db.prepare('UPDATE prompts SET endorsements = endorsements + 1 WHERE prompt = ?')
+        statement.run(prompt)
+    }
+    catch(err){
+        console.error(err)
+    }
+}
+
 
 const removePrompt = (prompt) => {
     try {
