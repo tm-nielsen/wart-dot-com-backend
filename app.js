@@ -109,7 +109,7 @@ exports.createApp = (allowedOrigin) => {
     })
 
 
-    app.patch('/set-endorse', (req, res) => {
+    app.patch('/set-endorsements', (req, res) => {
         if (authenticateRequest(req, res)) {
             const {prompt, endorsements} = req.body
             setPromptEndorsements(prompt, endorsements)
