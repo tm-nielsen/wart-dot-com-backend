@@ -162,7 +162,7 @@ const getRandomRowByWeight = (objectList) => {
     let weights = [objectList[0].endorsements]
 
     for (i = 1; i < objectList.length; i++)
-        weights[i] = objectList[i].endorsements + objectList[i].endorsements
+        weights[i] = objectList[i].endorsements + weights[i - 1]
 
     let random = Math.random() * weights[weights.length - 1]
 
