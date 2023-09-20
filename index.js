@@ -35,3 +35,8 @@ httpsServer.listen(port)
 console.log('\nhttps server listening on port', port,
 '\nallowing access from', allowedOrigin,
 '\nwith run args', process.argv.slice(2))
+
+if (runningLocally) {
+    expressApp.listen(8080)
+    console.log('\nexpress app also listening over http on port 8080')
+}
