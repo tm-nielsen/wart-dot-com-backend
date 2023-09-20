@@ -206,6 +206,17 @@ exports.overrideActivePrompt = (prompt) => {
 }
 
 
+exports.setPromptEndorsements = (prompt, endorsements) => {
+    try {
+        const statement = db.prepare('UPDATE prompts SET endorsements = ? WHERE prompt = ?')
+        statement.run(endorsements, prompt)
+    }
+    catch(err){
+        console.error(err)
+    }
+}
+
+
 exports.approvePrompts = (prompts) => {
     prompts.map((prompt) => {
         changePromptCategory(prompt, 'current')

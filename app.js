@@ -4,6 +4,7 @@ const {
     addPendingPrompt, endorsePrompt,
     approvePrompts, rejectPrompts,
     selectNewActivePrompt,
+    setPromptEndorsements,
     insertPrompt, removePrompt, overrideActivePrompt
 } = require('./databaseManager')
 
@@ -104,6 +105,15 @@ exports.createApp = (allowedOrigin) => {
             const {prompt} = req.body
             let newActivePrompt = overrideActivePrompt(prompt)
             res.send(`active prompt overriden to: ${newActivePrompt}`)
+        }
+    })
+
+
+    app.patch('/set-endorse', (req, res) => {
+        if (authenticateRequest(req, res)) {
+            const {prompt, endorsements} = req.body
+            setPromptEndorsements(prompt, endorsements)
+            res.send(`set "${prompt}" endorsement level to ${endorsements}`)
         }
     })
 
